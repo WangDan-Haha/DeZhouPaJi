@@ -1,0 +1,129 @@
+<view class="landscape-page">
+  <view class="game-shell">
+    <image class="ambient-image" src="/assets/poker-hero.png" mode="aspectFill" />
+    <view class="ambient-mask"></view>
+
+    <view class="top-hud">
+      <view class="brand">
+        <text class="brand-main">朋友德州局</text>
+        <text class="brand-sub">私人房 · {{players.length}} 人 · {{smallBlind}}/{{bigBlind}}</text>
+      </view>
+      <view class="room-actions">
+        <button class="hud-button" bindtap="readyAllDemo" disabled="{{handRunning}}">全员准备</button>
+        <button class="hud-button reset" bindtap="resetTable">重置</button>
+      </view>
+    </view>
+
+    <view class="table-zone">
+      <view class="felt-table">
+        <view class="rail rail-outer"></view>
+        <view class="rail rail-inner"></view>
+
+        <view class="dealer-chip">D</view>
+
+        <view class="center-board">
+          <view class="stage-row">
+            <text class="stage">{{streetLabel}}</text>
+            <text class="pot">底池 {{state.pot || 0}}</text>
+          </view>
+          <view class="community-cards">
+            <view wx:for="{{communityCards}}" wx:key="index" class="poker-card board-card {{item.red ? 'red' : 'black'}}">
+              <text class="corner top">{{item.rank}}</text>
+              <text class="suit">{{item.suit}}</text>
+              <text class="corner bottom">{{item.rank}}</text>
+            </view>
+            <view wx:for="{{emptyBoard}}" wx:key="index" class="poker-card board-card card-back">
+              <text class="back-mark">♠</text>
+            </view>
+          </view>
+        </view>
+
+        <view wx:for="{{playerViews}}" wx:key="id" style="{{item.seatStyle}}" class="seat {{item.active ? 'active' : ''}} {{item.folded ? 'folded' : ''}}">
+          <view class="seat-card">
+            <view class="avatar-wrap" bindtap="toggleReady" data-id="{{item.id}}">
+              <view class="avatar" style="background: {{item.avatarColor}};">{{item.avatar}}</view>
+              <text wx:if="{{item.isHost}}" class="host-badge">房主</text>
+              <text wx:elif="{{item.ready}}" class="ready-badge">已准备</text>
+              <text wx:else class="wait-badge">待准备</text>
+            </view>
+
+            <view class="seat-info">
+              <view class="name-row">
+                <text class="player-name">{{item.name}}</text>
+                <text class="chip-count">{{item.chips}}</text>
+              </view>
+              <text class="player-state">{{item.folded ? '已弃牌' : (item.bet ? '下注 ' + item.bet : (item.active ? '行动中' : '就绪'))}}</text>
+              <view class="hand-cards">
+                <view wx:for="{{item.cards}}" wx:key="index" class="poker-card hand-card {{item.red ? 'red' : 'black'}}">
+                  <text class="corner top">{{item.rank}}</text>
+                  <text class="suit">{{item.suit}}</text>
+                  <text class="corner bottom">{{item.rank}}</text>
+                </view>
+                <view wx:for="{{item.emptyCards}}" wx:key="index" class="poker-card hand-card card-back small-back">
+                  <text class="back-mark">◆</text>
+                </view>
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view class="side-panel">
+      <view wx:if="{{!handRunning && !winnersText}}" class="panel-block">
+        <view class="panel-head">
+          <text class="panel-title">房间</text>
+          <text class="panel-note">{{allReady ? '全部准备' : '等待准备'}}</text>
+        </view>
+        <view class="join-row">
+          <input value="{{newPlayerName}}" maxlength="8" placeholder="昵称" bindinput="onNameInput" />
+          <button class="blue-button" bindtap="addPlayer">加入</button>
+        </view>
+        <view class="settings">
+          <view class="field">
+            <text>买入</text>
+            <input type="number" value="{{buyIn}}" bindinput="onBuyInInput" />
+          </view>
+          <view class="field">
+            <text>小盲</text>
+            <input type="number" value="{{smallBlind}}" bindinput="onSmallBlindInput" />
+          </view>
+          <view class="field">
+            <text>大盲</text>
+            <input type="number" value="{{bigBlind}}" bindinput="onBigBlindInput" />
+          </view>
+        </view>
+        <button class="start-button" bindtap="startHand" disabled="{{!canStart}}">房主开始</button>
+      </view>
+
+      <view wx:if="{{handRunning}}" class="panel-block action-panel">
+        <view class="panel-head">
+          <text class="panel-title">{{currentPlayer.name}}</text>
+          <text class="panel-note">需跟 {{callAmount}}</text>
+        </view>
+        <view class="raise-row">
+          <input type="number" value="{{raiseAmount}}" bindinput="onRaiseInput" />
+          <button class="blue-button" bindtap="doRaise">加注</button>
+        </view>
+        <view class="action-grid">
+          <button bindtap="doFold">弃牌</button>
+          <button class="call-button" bindtap="doCheckOrCall">{{callAmount > 0 ? '跟注' : '过牌'}}</button>
+        </view>
+      </view>
+
+      <view wx:if="{{winnersText}}" class="panel-block result-panel">
+        <text class="panel-title">本局结果</text>
+        <text class="result-text">{{winnersText}}</text>
+        <button class="start-button" bindtap="nextHand">回到准备</button>
+      </view>
+
+      <view class="panel-block log-panel">
+        <view class="panel-head">
+          <text class="panel-title">牌局记录</text>
+          <text class="panel-note">最近 6 条</text>
+        </view>
+        <text class="log-line" wx:for="{{logs}}" wx:key="index">{{item}}</text>
+      </view>
+    </view>
+  </view>
+</view>
